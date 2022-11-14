@@ -1,1 +1,138 @@
+<!DOCTYPE html>
+<html lang="en-US">
 
+<head>
+    <meta charset="utf-8">
+    <title>Fires List</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+            flex-direction: row;
+            align-items: stretch;
+        }
+
+        #side-panel {
+            flex-basis: 500px;
+            overflow-y: scroll;
+        }
+
+        #map {
+            flex-grow: 1;
+        }
+
+        button {
+            margin-bottom: 10px;
+        }
+
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 16px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <main id="container">
+        <div id="side-panel">
+
+            <h2>Fires In California, <br> Compared to National Forests</h2>
+
+            <table>
+                <tr>
+                    <th>Fire Name</th>
+                    <th>Area</th>
+                    <th>Report Date</th>
+                </tr>
+            </table>
+
+        </div>
+        <iframe width='100%' src="https://api.mapbox.com/styles/v1/lukehouser/clagdm3cj001815odtqp012j4.html?title=false&access_token=pk.eyJ1IjoibHVrZWhvdXNlciIsImEiOiJjbGFnYWp6OHQwOGZ5M3JxdWhjNzVycTA4In0.Ou1kHBdLfoRdTMRMS9Y7CA&zoomwheel=false#4.6/37.8/-119.81" title="Outdoors" style="border:none;"></iframe>
+
+    </main>
+
+    <script>
+        async function geojsonFetch() {
+
+        let response, fires, forests, table;
+        response = await fetch('assets/fires.geojson');
+        fires = await response.json();
+        response = await fetch('assets/forests.json');
+        forests = await response.json();
+
+        table = document.getElementsByTagName("table")[0];
+        let row, cell1, cell2, cell3;
+        for (let i = 0; i < fires.features.length; i++) {
+            // Create an empty <tr> element and add it to the 1st position of the table:
+            row = table.insertRow(-1);
+            cell1 = row.insertCell(0);
+            cell2 = row.insertCell(1);
+            cell3 = row.insertCell(2);
+            cell1.innerHTML = fires.features[i].properties.FIRE_NAME;
+            cell2.innerHTML = fires.features[i].properties.GIS_ACRES;
+            cell3.innerHTML = fires.features[i].properties.YEAR_;
+        }
+
+
+        //load data to the map as new layers and table on the side.
+        map.on('load', function loadingData() {
+
+            map.addSource('fires', {
+                type: 'geojson',
+                data: fires
+            });
+
+            map.addLayer({
+                'id': 'fires-layer',
+                'type': 'fill',
+                'source': 'fires',
+                'paint': {
+                    'fill-color': 'red',
+                    'fill-opacity': 0.5
+                }
+            });
+
+
+            map.addSource('forests', {
+                type: 'geojson',
+                data: forests
+            });
+
+            map.addLayer({
+                'id': 'forests-layer',
+                'type': 'fill',
+                'source': 'forests',
+                'paint': {
+                    'fill-color': 'green',
+                    'fill-opacity': 0.5
+                }
+            });
+
+        });
+
+        }
+    </script>
+
+</body>
+
+</html>
